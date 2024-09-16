@@ -35,7 +35,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(bodyParser.urlencoded({ extended: false })); // Parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // Parse application/json
 
-// app.use(cookieParser());  // Middleware to parse cookies
+// app.use(cookieParser(process.env.cookie_parser_secret_key));  // Middleware to parse cookies
 // Configure cookie-session middleware
 app.use(cookieSession({
     name: 'session',
