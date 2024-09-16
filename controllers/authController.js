@@ -1,17 +1,18 @@
+require('dotenv').config();
+
 const db = require('../models/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-require('dotenv').config();
 
 // Secret key used to sign the JWT
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const showLoginForm = (req, res) => {
-    res.render('login');
+    res.render('login', { errors: res.locals.errors, formData: res.locals.formData });
 };
 
 const showRegisterForm = (req, res) => {
-    res.render('register');
+    res.render('register', { errors: res.locals.errors, formData: res.locals.formData });
 };
 
 const login = async (req, res) => {
@@ -23,7 +24,10 @@ const login = async (req, res) => {
 
         // Validate user existence and password
         if (!users || !bcrypt.compareSync(password, users.password)) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            //return res.status(401).json({ message: 'Invalid credentials' });
+            req.flash('errors', [{ msg: 'Invalid credentials' }]);
+            req.flash('formData', req.body);
+            return res.redirect('/auth/login');
         }
 
         // Create a JWT payload
@@ -46,8 +50,11 @@ const login = async (req, res) => {
         return res.redirect('/home');
 
     } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        //console.error('Login error:', error);
+        //res.status(500).json({ error: 'Internal server error' });
+        req.flash('errors', [{ msg: 'Internal server error' }]);
+        req.flash('formData', req.body);
+        return res.redirect('/auth/login');
     }
 };
 
@@ -63,6 +70,15 @@ const register = async (req, res) => {
 
     try {
 
+        // Check if email already exists
+        const existingUser = await db.users.findOne({ where: { email } });
+        if (existingUser) {
+            // If email already exists, send an error message
+            req.flash('errors', [{ msg: 'Email already in use. Please choose a different email.' }]);
+            req.flash('formData', req.body);
+            return res.redirect('/auth/register');
+        }
+
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -75,7 +91,13 @@ const register = async (req, res) => {
 
     } catch (error) {
         console.error('Registration error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+
+        // Store general error message in flash
+        req.flash('errors', [{ msg: 'Internal server error. Please try again later.' }]);
+        req.flash('formData', req.body);
+
+        // Redirect back to the registration form
+        res.redirect('/auth/register');
     }
 };
 

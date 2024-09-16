@@ -1,0 +1,105 @@
+1. email verification (`nodemailer`, Generate a verification token using `crypto` or a library like `uuid`)
+2. forgot password
+
+
+
+3. logger:
+
+npm install winston
+
+model:
+const Log = sequelize.define('Log', {
+    level: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    message: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    },
+    meta: {
+        type: DataTypes.JSONB
+    },
+    timestamp: {
+        type: DataTypes.DATE,
+        defaultValue: Sequelize.NOW
+    }
+}, {
+    timestamps: false,
+    tableName: 'logs'
+});
+module.exports = { sequelize, Log };
+
+
+
+
+winston-postgres-transport.js:
+const { TransportStreamOptions } = require('winston');
+const { Log } = require('./models'); // Adjust the path as necessary
+class PostgresTransport extends TransportStreamOptions {
+    async log(info, callback) {
+        const { level, message, meta } = info;
+        try {
+            await Log.create({
+                level,
+                message,
+                meta,
+                timestamp: new Date()
+            });
+        } catch (error) {
+            console.error('Failed to write log to PostgreSQL', error);
+        }
+        callback();
+    }
+}
+module.exports = PostgresTransport;
+
+
+
+logger.js:
+const winston = require('winston');
+const PostgresTransport = require('./winston-postgres-transport'); // Adjust the path as necessary
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+    ),
+    transports: [
+        new winston.transports.Console(),
+        new PostgresTransport()
+    ]
+});
+module.exports = logger;
+
+
+
+(Initialize Sequelize and Use Logger in Your Application)
+app.js:
+const express = require('express');
+const { sequelize } = require('./models'); // Adjust the path as necessary
+const logger = require('./logger'); // Adjust the path as necessary
+const app = express();
+// Ensure the database is connected and the tables are created
+sequelize.authenticate()
+    .then(() => {
+        console.log('Database connected');
+        return sequelize.sync(); // Sync models with the database
+    })
+    .then(() => {
+        // Start the application only after the database is ready
+        app.listen(3000, () => {
+            logger.info('Server is running on port 3000');
+        });
+    })
+    .catch(error => {
+        console.error('Database connection failed', error);
+    });
+app.get('/', (req, res) => {
+    logger.info('Root route accessed');
+    res.send('Hello World!');
+});
+app.use((err, req, res, next) => {
+    logger.error('Unhandled error', { message: err.message, stack: err.stack });
+    res.status(500).send('Internal Server Error');
+});

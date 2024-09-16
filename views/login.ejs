@@ -7,10 +7,18 @@
 </head>
 <body>
     <h1>Login</h1>
+    <% if (errors.length > 0) { %>
+        <ul>
+            <% errors.forEach(function(error) { %>
+                <li><%= error.msg %></li>
+            <% }); %>
+        </ul>
+    <% } %>
     <form action="/auth/login" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>"> <!-- Add CSRF token here -->
         <div>
             <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
+            <input type="email" id="email" name="email" value="<%= formData.email %>" required>
         </div>
         <div>
             <label for="password">Password:</label>

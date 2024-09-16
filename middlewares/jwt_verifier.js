@@ -14,13 +14,13 @@ const authenticateTokenAndRedirect = async (req, res, next) => {
     const currentRoute = req.originalUrl || req.path;
     
     // Log token and current route for debugging
-    console.log('Token from session:', token);
-    console.log('Current route:', currentRoute);
+    //console.log('Token from session:', token);
+    //console.log('Current route:', currentRoute);
 
     // If no token is provided, redirect to login page
     if (!token) {
         if (currentRoute !== '/auth/login') {
-            console.log('No token found, redirecting to /auth/login');
+            //console.log('No token found, redirecting to /auth/login');
             return res.redirect('/auth/login');
         } else {
             // If already on the login page, proceed
@@ -31,12 +31,12 @@ const authenticateTokenAndRedirect = async (req, res, next) => {
     try {
         // Verify token
         const decoded = jwt.verify(token, JWT_SECRET);
-        console.log('Decoded token:', decoded);
+        //console.log('Decoded token:', decoded);
 
         // Find user by ID from the decoded token
         const user = await db.users.findByPk(decoded.id);
         if (!user) {
-            console.log('User not found, clearing session and redirecting to /auth/login');
+            //console.log('User not found, clearing session and redirecting to /auth/login');
             req.session = null; // Clear session
             return res.redirect('/auth/login');
         }
@@ -48,19 +48,19 @@ const authenticateTokenAndRedirect = async (req, res, next) => {
         // Redirect based on user role only if not on the correct route
         if (user.role === 'user') {
             if (currentRoute !== '/home') {
-                console.log('Redirecting user to /home');
+                //console.log('Redirecting user to /home');
                 return res.redirect('/home');
             }
         } else if (user.role === 'admin') {
             if (currentRoute !== '/admin') {
-                console.log('Redirecting admin to /admin');
+                //console.log('Redirecting admin to /admin');
                 return res.redirect('/admin');
             }
         } else {
             // If role is unknown or missing, clear session and redirect to login page
             req.session = null; // Clear session
             if (currentRoute !== '/auth/login') {
-                console.log('Unknown role, clearing session and redirecting to /auth/login');
+                //console.log('Unknown role, clearing session and redirecting to /auth/login');
                 return res.redirect('/auth/login');
             } else {
                 // If already on the login page, proceed
@@ -72,11 +72,11 @@ const authenticateTokenAndRedirect = async (req, res, next) => {
         return next();
 
     } catch (err) {
-        console.error('Token verification error:', err);
+        //console.error('Token verification error:', err);
         // If token is invalid or expired, clear session and redirect to login page
         req.session = null; // Clear session
         if (currentRoute !== '/auth/login') {
-            console.log('Token verification failed, clearing session and redirecting to /auth/login');
+            //console.log('Token verification failed, clearing session and redirecting to /auth/login');
             return res.redirect('/auth/login');
         } else {
             // If already on the login page, proceed
@@ -95,13 +95,13 @@ const authenticateTokenAndRedirect2 = async (req, res, next) => {
     const currentRoute = req.originalUrl || req.path;
     
     // Log token and current route for debugging
-    console.log('Token from cookie:', token);
-    console.log('Current route:', currentRoute);
+    //console.log('Token from cookie:', token);
+    //console.log('Current route:', currentRoute);
 
     // If no token is provided, redirect to login page
     if (!token) {
         if (currentRoute !== '/auth/login') {
-            console.log('No token found, redirecting to /auth/login');
+            //console.log('No token found, redirecting to /auth/login');
             return res.redirect('/auth/login');
         } else {
             // If already on the login page, proceed
@@ -112,12 +112,12 @@ const authenticateTokenAndRedirect2 = async (req, res, next) => {
     try {
         // Verify token
         const decoded = jwt.verify(token, JWT_SECRET);
-        console.log('Decoded token:', decoded);
+        //console.log('Decoded token:', decoded);
 
         // Find user by ID from the decoded token
         const user = await db.users.findByPk(decoded.id);
         if (!user) {
-            console.log('User not found, clearing cookies and redirecting to /auth/login');
+            //console.log('User not found, clearing cookies and redirecting to /auth/login');
             res.clearCookie('authToken'); // Clear the cookie
             return res.redirect('/auth/login');
         }
@@ -129,19 +129,19 @@ const authenticateTokenAndRedirect2 = async (req, res, next) => {
         // Redirect based on user role only if not on the correct route
         if (user.role === 'user') {
             if (currentRoute !== '/home') {
-                console.log('Redirecting user to /home');
+                //console.log('Redirecting user to /home');
                 return res.redirect('/home');
             }
         } else if (user.role === 'admin') {
             if (currentRoute !== '/admin') {
-                console.log('Redirecting admin to /admin');
+                //console.log('Redirecting admin to /admin');
                 return res.redirect('/admin');
             }
         } else {
             // If role is unknown or missing, clear cookies and redirect to login page
             res.clearCookie('authToken'); // Clear the cookie
             if (currentRoute !== '/auth/login') {
-                console.log('Unknown role, clearing cookies and redirecting to /auth/login');
+                //console.log('Unknown role, clearing cookies and redirecting to /auth/login');
                 return res.redirect('/auth/login');
             } else {
                 // If already on the login page, proceed
@@ -153,11 +153,11 @@ const authenticateTokenAndRedirect2 = async (req, res, next) => {
         return next();
 
     } catch (err) {
-        console.error('Token verification error:', err);
+        //console.error('Token verification error:', err);
         // If token is invalid or expired, clear cookies and redirect to login page
         res.clearCookie('authToken'); // Clear the cookie
         if (currentRoute !== '/auth/login') {
-            console.log('Token verification failed, clearing cookies and redirecting to /auth/login');
+            //console.log('Token verification failed, clearing cookies and redirecting to /auth/login');
             return res.redirect('/auth/login');
         } else {
             // If already on the login page, proceed
