@@ -33,11 +33,14 @@ const login = async (req, res) => {
         const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1h' });
 
         // Set JWT in an HTTP-only, secure cookie
-        res.cookie('authToken', token, {
-            httpOnly: process.env.cookie_httpOnly,   // Cannot be accessed by JavaScript
-            secure: process.env.cookie_secure,    // Set to true if you're using HTTPS
-            sameSite: process.env.cookie_sameSite // 'strict' = Helps prevent CSRF, 'lax' is less restrictive and should work with most requests
-        });
+        // res.cookie('authToken', token, {
+        //     httpOnly: process.env.cookie_httpOnly,   // Cannot be accessed by JavaScript
+        //     secure: process.env.cookie_secure,    // Set to true if you're using HTTPS
+        //     sameSite: process.env.cookie_sameSite // 'strict' = Helps prevent CSRF, 'lax' is less restrictive and should work with most requests
+        // });
+
+         // Set JWT in session
+         req.session.authToken = token;
 
         // redirect to home page
         return res.redirect('/home');
@@ -49,7 +52,8 @@ const login = async (req, res) => {
 };
 
 const logout = (req, res) => {
-    res.clearCookie('authToken'); // Clear the JWT cookie
+    // res.clearCookie('authToken'); // Clear the JWT cookie
+    req.session = null; // Clear session data
     //res.json({ message: 'Logged out' });
     return res.redirect('/auth/login');
 };

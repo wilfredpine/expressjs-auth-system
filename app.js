@@ -8,7 +8,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 
 const app = express(); // express app
 const port = process.env.PORT || 3000; // port
@@ -34,7 +35,13 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(bodyParser.urlencoded({ extended: false })); // Parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // Parse application/json
 
-app.use(cookieParser());  // Middleware to parse cookies
+// app.use(cookieParser());  // Middleware to parse cookies
+// Configure cookie-session middleware
+app.use(cookieSession({
+    name: 'session',
+    secret: process.env.COOKIE_SESSION_SECRET || 'default-secret', // Replace with a strong secret
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }));
 
 /**
  * Models
