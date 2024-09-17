@@ -5,12 +5,12 @@ const { body, validationResult } = require('express-validator');
 
 // Validation rules
 const registrationValidators = [
-    body('name').notEmpty().withMessage('Name is required'),
-    body('email').isEmail().withMessage('Invalid email address'),
+    body('name').notEmpty().trim().escape().withMessage('Name is required'),
+    body('email').isEmail().normalizeEmail().withMessage('Invalid email address'),
     body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long')
 ];
 const loginValidators = [
-    body('email').isEmail().withMessage('Invalid email address')
+    body('email').isEmail().normalizeEmail().withMessage('Invalid email address')
 ];
 
 router.get('/login', showLoginForm);

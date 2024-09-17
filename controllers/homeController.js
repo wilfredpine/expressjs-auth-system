@@ -1,6 +1,7 @@
 
 const index = (req, res) => {
-    res.render('index');
+    user = req.user
+    res.render('index', user);
 };
 
 
