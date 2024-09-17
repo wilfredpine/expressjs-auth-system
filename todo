@@ -1,0 +1,10 @@
+Sanitize and validate user inputs before storing them in the database.
+    // Example of validation and sanitization middleware
+    const registrationValidators = [
+        body('email').isEmail().normalizeEmail(),
+        body('name').trim().escape(),
+        body('password').isLength({ min: 8 }).trim().escape(),
+    ];
+    
+Escape output data to ensure that any special characters are not interpreted as executable code.
+    EJS and Pug automatically escape data
