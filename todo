@@ -1,2 +1,0 @@
-1. email verification (`nodemailer`, Generate a verification token using `crypto` or a library like `uuid`)
-2. forgot password

@@ -18,3 +18,4 @@
 - logout
 - email verification
 - forgot password
+- multiple user role validation
