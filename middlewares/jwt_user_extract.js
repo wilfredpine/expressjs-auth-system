@@ -23,6 +23,8 @@ function extractUserFromToken(req, res, next) {
             email: decoded.email,
             role: decoded.role
         };
+
+
     } catch (err) {
         console.error('Failed to authenticate token:', err);
         req.user = {}; // In case of error, set user to an empty object
