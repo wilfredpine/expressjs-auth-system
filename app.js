@@ -17,6 +17,8 @@ const helmet = require('helmet');
 const session = require('express-session');
 const flash = require('connect-flash');
 
+const logger = require('./middlewares/logger');
+
 const app = express(); // express app
 
 const HOST = process.env.HOST || 'localhost';
@@ -31,6 +33,7 @@ app.set('view engine', 'ejs');
 // Listen for request
 app.listen(port, HOST, () => {
     console.log(`Server is running on port ${port}`);
+    logger.info(`Server is running on port ${port}`);
 });
 
 /**
@@ -110,6 +113,61 @@ db.sequelize.sync({ force: false }).then(() => {
     console.log('Database & tables created!');
   }); //Using { force: true } will drop the tables if they already exist. You can remove this option or set it to false in a production environment to prevent data loss.
 
+
+
+/**
+ * Request Logging Middleware
+ */
+const extractUserFromToken = require('./middlewares/jwt_user_extract');
+const get_client_ip = require('./middlewares/get_client_ip');
+
+// Use the middleware to extract user information
+app.use(extractUserFromToken);
+
+// Middleware to log request details
+app.use((req, res, next) => {
+  const start = Date.now();
+  const clientIp = get_client_ip(req);
+  // Log request details
+  logger.info('Request received', {
+      method: req.method,
+      url: req.url,
+      ip: clientIp,
+      headers: req.headers,
+      user: {
+          id: req.user ? req.user.id : 'unknown',
+          username: req.user ? req.user.username : 'anonymous',
+          email: req.user ? req.user.email : 'anonymous'
+      },
+      meta: {
+          userAgent: req.headers['user-agent'],
+          referer: req.headers.referer,
+          method: req.method,
+          url: req.url,
+          ip: clientIp,
+          headers: req.headers,
+          user: {
+            id: req.user ? req.user.id : 'unknown',
+            username: req.user ? req.user.username : 'anonymous',
+            email: req.user ? req.user.email : 'anonymous'
+          }
+      }
+  });
+
+  // Capture response status and duration
+  res.on('finish', () => {
+      const duration = Date.now() - start;
+      logger.info('Request completed', {
+          method: req.method,
+          url: req.url,
+          status: res.statusCode,
+          duration: `${duration}ms`
+      });
+  });
+  
+  next();
+});
+
 /**
  * Routes
  */
@@ -121,12 +179,17 @@ app.use('/', homeRoutes);
 app.use('/auth', authRoutes);
 
 
-// Error handling middleware for CSRF errors
+// Error handling middleware for CSRF and Other errors
 app.use((err, req, res, next) => {
   if (err.code === 'EBADCSRFTOKEN') {
+      // Handle CSRF errors
+      logger.warn('CSRF error', { message: err.message, stack: err.stack });
       res.status(403).send('Form has expired or tampered with.');
   } else {
-      next(err);
+    // next(err);
+      // Log the error and handle other errors
+      logger.error('Unhandled error', { message: err.message, stack: err.stack });
+      res.status(500).send('Internal Server Error');
   }
 });
 
