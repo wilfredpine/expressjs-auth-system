@@ -48,7 +48,33 @@ app.listen(port, HOST, () => {
  * Middleware & Static files
  * Set path for static files (e.g., CSS, images)
  */ 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, path) => {
+      if (path.endsWith('.exe') || path.endsWith('.bat') || path.endsWith('.EXE') || path.endsWith('.BAT')) {
+        return res.status(403).send('Executable files are forbidden.');
+      }
+    }
+  }));
+
+// Block access to .json files
+app.use((req, res, next) => {
+    if (req.url.endsWith('.json') || req.url.endsWith('.JSON')) {
+      return res.status(403).send('Access to JSON files is forbidden.');
+    }
+    next();
+  });
+
+const forbiddenExtensions = ['.exe', '.bat','.EXE', '.BAT'];
+// Middleware to block access based on multiple conditions
+app.use('/uploads', (req, res, next) => {
+    const fileExtension = path.extname(req.path);  // Get the file extension
+    // Block specific files or extensions
+    if (forbiddenExtensions.includes(fileExtension)) {
+      return res.status(403).send('Access to this file is forbidden.');
+    }
+    next();
+  });
+  
 //app.use(express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
