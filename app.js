@@ -25,6 +25,9 @@ const HOST = process.env.HOST || 'localhost';
 const port = process.env.PORT || 3000; // port
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
+// Set default log level or use the one from .env
+const logLevel = process.env.LOG_LEVEL || 'info';
+
 /**
  * Template engine
  */
@@ -32,8 +35,13 @@ app.set('view engine', 'ejs');
 
 // Listen for request
 app.listen(port, HOST, () => {
-    console.log(`Server is running on port ${port}`);
-    logger.info(`Server is running on port ${port}`);
+    if (logLevel === 'debug') {
+      console.log(`[DEBUG] Server started on port ${port}`);
+      logger.info(`[DEBUG] Server is running on port ${port}`);
+    } else if (logLevel === 'info') {
+      console.log(`Server started on port ${port}`);
+      logger.info(`Server is running on port ${port}`);
+    }
 });
 
 /**
