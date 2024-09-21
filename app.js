@@ -1,5 +1,5 @@
 /**
- * Attendance Monitoring System
+ * Authenticaton System
  * Using ExpressJS
  */
 require('dotenv').config();
