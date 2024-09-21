@@ -1,3 +1,12 @@
+/**
+ * Authenticaton System
+ * Using ExpressJS
+ * By: Wilfred V. Pine
+ * https://github.com/wilfredpine/
+ * https://github.com/wilfredpine/expressjs-auth
+ * @8/2024
+ */
+
 module.exports = (sequelize, DataTypes) => {
     const users = sequelize.define('users', {
       name: {

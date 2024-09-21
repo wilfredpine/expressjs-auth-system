@@ -1,3 +1,12 @@
+/**
+ * Authenticaton System
+ * Using ExpressJS
+ * By: Wilfred V. Pine
+ * https://github.com/wilfredpine/
+ * https://github.com/wilfredpine/expressjs-auth
+ * @8/2024
+ */
+
 function get_client_ip(req) {
     // Extract the IP address from the X-Forwarded-For header
     const forwardedFor = req.headers['x-forwarded-for'];

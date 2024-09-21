@@ -1,5 +1,8 @@
 ## expressjs-auth
 
+- https://github.com/wilfredpine/
+- https://github.com/wilfredpine/expressjs-auth
+
 ### A simple authentication system using expressjs framework with the following securities:
 
 - Password hashing
