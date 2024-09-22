@@ -7,9 +7,11 @@
  * @8/2024
  */
 
-// config/emailConfig.js
 require('dotenv').config();
 
+/**
+ * Email Configuration
+ */
 const emailConfig = {
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT,

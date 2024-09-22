@@ -10,6 +10,9 @@
 const { createLogger, format, transports } = require('winston');
 const PostgresTransport = require('./winston-postgres-transport');
 
+/**
+ * Logger
+ */
 const logger = createLogger({
     level: 'info',
     format: format.combine(

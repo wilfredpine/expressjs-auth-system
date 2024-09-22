@@ -12,6 +12,9 @@ const util = require('util');
 
 const db = require('../models/db');
 
+/**
+ * Winston PostgresTransport - used to saved the logs
+ */
 class PostgresTransport extends Transport {
     constructor(options) {
         super(options);

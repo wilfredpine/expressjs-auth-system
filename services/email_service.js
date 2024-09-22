@@ -9,11 +9,18 @@
 
 require('dotenv').config();
 
-const nodemailer = require('nodemailer');
-const emailConfig = require('../config/email_config');
+const nodemailer = require('nodemailer');                   // load module
+const emailConfig = require('../config/email_config');      // load Email Configuration
 
 const transporter = nodemailer.createTransport(emailConfig);
 
+/**
+ * Sending Email Function
+ * @param {*} to 
+ * @param {*} subject 
+ * @param {*} text 
+ * @param {*} html 
+ */
 const send_email = async (to, subject, text, html) => {
     try {
         await transporter.sendMail({
@@ -30,19 +37,29 @@ const send_email = async (to, subject, text, html) => {
     }
 };
 
+/**
+ * Handle sending email verification link
+ * @param {*} userEmail 
+ * @param {*} token 
+ */
 const sendVerificationEmail = async (userEmail, token) => {
-    const verifyUrl = `http://127.0.0.1:3000/auth/verify-email?token=${token}`;
+    const verifyUrl = `${process.env.BASE_URL || 'http://127.0.0.1:3000/'}auth/verify-email?token=${token}`;
     const subject = 'Email Verification';
-    const text = `Please verify your email by clicking on the following link: http://127.0.0.1:3000/auth/verify-email?token=${token}`;
+    const text = `Please verify your email by clicking on the following link: ${process.env.BASE_URL || 'http://127.0.0.1:3000/'}auth/verify-email?token=${token}`;
     const html = `<p>Please verify your email by clicking on the following link: <a href="${verifyUrl}">Verify Email</a></p>`;
 
     await send_email(userEmail, subject, text, html);
 };
 
+/**
+ * handle email sending password reset link
+ * @param {*} userEmail 
+ * @param {*} token 
+ */
 const sendPasswordResetEmail = async (userEmail, token) => {
-    const resetUrl = `http://127.0.0.1:3000/auth/new-password?token=${token}`;
+    const resetUrl = `${process.env.BASE_URL || 'http://127.0.0.1:3000/'}auth/new-password?token=${token}`;
     const subject = 'Password Reset';
-    const text = `Reset your password by clicking on the following link: http://127.0.0.1:3000/auth/new-password?token=${token}`;
+    const text = `Reset your password by clicking on the following link: ${process.env.BASE_URL || 'http://127.0.0.1:3000/'}auth/new-password?token=${token}`;
     const html = `<p>Reset your password by clicking on the following link: <a href="${resetUrl}">Reset Password</a></p>`;
 
     await send_email(userEmail, subject, text, html);

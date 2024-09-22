@@ -8,19 +8,24 @@
  */
 
 require('dotenv').config();
-// Secret key used to sign the JWT
-const JWT_SECRET = process.env.JWT_SECRET;
+
+const JWT_SECRET = process.env.JWT_SECRET;                      // Secret key used to sign the JWT
 
 const db = require('../models/db');
 const jwt = require('jsonwebtoken');
 
-// Middleware to verify JWT and handle redirection
+/**
+ * Admin user verification
+ * Middleware to verify JWT and handle redirection
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ * @returns 
+ */
 const authenticateTokenAdmin = async (req, res, next) => {
-    // Extract token from session
-    const token = req.session.authToken;
-
-    // Get the current route being accessed
-    const currentRoute = req.originalUrl || req.path;
+    
+    const token = req.session.authToken;                // Extract token from session
+    const currentRoute = req.originalUrl || req.path;   // Get the current route being accessed
     
     // Log token and current route for debugging
     //console.log('Token from session:', token);
@@ -89,7 +94,15 @@ const authenticateTokenAdmin = async (req, res, next) => {
     }
 };
 
-// Middleware to verify JWT and handle redirection
+
+/**
+ * User userrole verification
+ * Middleware to verify JWT and handle redirection
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ * @returns 
+ */
 const authenticateTokenUser = async (req, res, next) => {
     // Extract token from session
     const token = req.session.authToken;
@@ -163,7 +176,6 @@ const authenticateTokenUser = async (req, res, next) => {
         }
     }
 };
-
 
 // Middleware to verify JWT and handle redirection
 const authenticateTokenAndRedirect = async (req, res, next) => {
@@ -245,7 +257,6 @@ const authenticateTokenAndRedirect = async (req, res, next) => {
     }
 };
 
-
 // Middleware to verify JWT and handle redirection
 const authenticateTokenAndRedirect2 = async (req, res, next) => {
     // Extract token from cookie
@@ -325,6 +336,5 @@ const authenticateTokenAndRedirect2 = async (req, res, next) => {
         }
     }
 };
-
 
 module.exports = { authenticateTokenAdmin, authenticateTokenUser };
