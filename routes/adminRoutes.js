@@ -10,9 +10,12 @@
 const express = require('express');
 const router = express.Router();
 
-const { authenticateTokenUser } = require('../middlewares/jwt_verifier');
-const { index } = require('../controllers/homeController');
+const { authenticateTokenAdmin } = require('../middlewares/jwt_verifier');
 
-router.get('/', authenticateTokenUser, index);
+
+router.get('/', authenticateTokenAdmin, (req, res) => {
+    user = req.user
+    res.send(`Welcome admin {user}`);
+});
 
 module.exports = router;

@@ -65,8 +65,16 @@ const login = async (req, res) => {
          // Set JWT in session
          req.session.authToken = token;
 
-        // redirect to home page
-        return res.redirect('/home');
+         if(users.role === "user"){
+            // redirect to home page
+            return res.redirect('/home');
+         }else{
+            //use another controller for ADMIN login
+            res.clearCookie('authToken'); // Clear the JWT cookie
+            req.session = null; // Clear session data
+            //res.json({ message: 'Logged out' });
+            return res.redirect('/auth/login');
+         }
 
     } catch (error) {
         //console.error('Login error:', error);
