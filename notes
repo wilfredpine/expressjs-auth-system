@@ -6,6 +6,7 @@
 / express-validator           - SQL injection or Cross-Site Scripting (XSS) protection
 / csurf + cookie-parser       - CSRF protection
 / helmet                      - Content Security Policy (CSP) | Helps prevent XSS attacks by specifying which dynamic resources are allowed to load. Prevents various attacks by setting HTTP headers that enforce security policies.
+/html-entities or use template engine       - Escape output data
 
 Additional:
 Regular Security Audits

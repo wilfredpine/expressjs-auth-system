@@ -1,10 +1,27 @@
-Sanitize and validate user inputs before storing them in the database.
-    // Example of validation and sanitization middleware
+# Sanitize and validate user inputs before storing them in the database.
+
+    // Example of validation and sanitization middleware (Express-validator)
     const registrationValidators = [
         body('email').isEmail().normalizeEmail(),
         body('name').trim().escape(),
         body('password').isLength({ min: 8 }).trim().escape(),
     ];
     
-Escape output data to ensure that any special characters are not interpreted as executable code.
-    EJS and Pug automatically escape data
+# Escape output data to ensure that any special characters are not interpreted as executable code.
+    
+    - `EJS` and `Pug` automatically escape data
+
+    - Using `html-entities`:
+
+        const { encode } = require('html-entities');
+        const data = db.User.find();
+        // Sanitize data
+        const sanitizedData = data.map(data => {
+            return {
+                id: data.id,
+                name: encode(data.name), // HTML-encode user name
+                // Add more fields to sanitize as needed
+                description: encode(data.description),
+            };
+        });
+        res.render('info/index',  { 'info': sanitizedData });
