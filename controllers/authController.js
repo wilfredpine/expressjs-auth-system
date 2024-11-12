@@ -12,7 +12,7 @@ require('dotenv').config();
 const db = require('../models/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/email_service');
+const { sendVerificationEmail, sendPasswordResetEmail } = require('../middlewares/email');
 
 const JWT_SECRET = process.env.JWT_SECRET;      // Secret key used to sign the JWT
 
@@ -33,6 +33,7 @@ const showLoginForm = (req, res) => {
  * @returns {Promise<void>} - A promise that resolves when the login process is complete.
  */
 const login = async (req, res) => {
+
     const { email, password } = req.body;
 
     try {
@@ -59,26 +60,17 @@ const login = async (req, res) => {
         // Generate JWT
         const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1h' });
 
-        // Set JWT in an HTTP-only, secure cookie
-        /*
-            res.cookie('authToken', token, {
-                httpOnly: process.env.cookie_httpOnly,   // Cannot be accessed by JavaScript
-                secure: process.env.cookie_secure,    // Set to true if you're using HTTPS
-                sameSite: process.env.cookie_sameSite // 'strict' = Helps prevent CSRF, 'lax' is less restrictive and should work with most requests
-            });
-        */
+        // Set JWT in session
+        req.session.authToken = token;
 
-         // Set JWT in session
-         req.session.authToken = token;
-
-         if(users.role === "user"){
+        if(users.role === "user"){
             return res.redirect('/home');               // redirect to home page
-         }else{
+        }else{
             //use another controller for ADMIN login
             res.clearCookie('authToken');               // Clear the JWT cookie
             req.session = null;                         // Clear session data
             return res.redirect('/auth/login');
-         }
+        }
 
     } catch (error) {
         req.flash('errors', [{ msg: 'Internal server error' }]);
@@ -116,6 +108,7 @@ const showRegisterForm = (req, res) => {
  * @returns {Promise<void>} - A promise that resolves when the register process is complete.
  */
 const register = async (req, res) => {
+
     const { name, email, password } = req.body;
 
     try {
@@ -163,6 +156,7 @@ const register = async (req, res) => {
  * @returns 
  */
 const verifyEmail = async (req, res) => {
+
     const { token } = req.query;
 
     try {
@@ -181,6 +175,7 @@ const verifyEmail = async (req, res) => {
         console.error('Verification error:', error);
         return res.status(400).send('Invalid verification link');
     }
+
 };
 
 /**
@@ -190,6 +185,7 @@ const verifyEmail = async (req, res) => {
  * @returns 
  */
 const requestPasswordReset = async (req, res) => {
+
     const { email } = req.body;
 
     try {
@@ -211,6 +207,7 @@ const requestPasswordReset = async (req, res) => {
         req.flash('errors', [{ msg: 'Internal server error. Please try again later.' }]);
         return res.redirect('/auth/reset-password');
     }
+
 };
 
 /**
@@ -220,6 +217,7 @@ const requestPasswordReset = async (req, res) => {
  * @returns 
  */
 const renderResetPasswordForm = (req, res) => {
+
     // Extract token from query params
     const token = req.query.token;
 
@@ -231,6 +229,7 @@ const renderResetPasswordForm = (req, res) => {
 
     // Render the form with the token
     res.render('new-password', { errors: req.flash('errors'), token });
+
 };
 
 /**
@@ -240,6 +239,7 @@ const renderResetPasswordForm = (req, res) => {
  * @returns 
  */
 const resetPassword = async (req, res) => {
+
     const { token, newPassword } = req.body;
 
     try {
@@ -262,6 +262,7 @@ const resetPassword = async (req, res) => {
         req.flash('errors', [{ msg: 'An error occurred during password reset' }]);
         return res.redirect('/auth/new-password');
     }
+    
 };
 
 module.exports = {

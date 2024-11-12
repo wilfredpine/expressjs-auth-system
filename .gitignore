@@ -1,6 +1,8 @@
 .DS_Store
 
 node_modules/*
+old/node_modules/*
+old/*
 
 # IDE Files
 #-------------------------

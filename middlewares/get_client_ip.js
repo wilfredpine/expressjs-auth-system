@@ -1,5 +1,5 @@
 /**
- * Authenticaton System
+ * Authentication System
  * Using ExpressJS
  * By: Wilfred V. Pine
  * https://github.com/wilfredpine/
@@ -20,6 +20,7 @@ function get_client_ip(req) {
         return forwardedFor.split(',')[0].trim();                               // `x-forwarded-for` might contain multiple IPs, the first is the original client IP
     }
     return req.connection.remoteAddress || req.socket.remoteAddress || '';      // Fallback to req.ip in case X-Forwarded-For is not present
+
 }
 
 module.exports = get_client_ip;

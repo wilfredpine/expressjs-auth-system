@@ -1,5 +1,5 @@
 /**
- * Authenticaton System
+ * Authentication System
  * Using ExpressJS
  * By: Wilfred V. Pine
  * https://github.com/wilfredpine/
@@ -8,7 +8,6 @@
  */
 
 const { createLogger, format, transports } = require('winston');
-const PostgresTransport = require('./winston-postgres-transport');
 
 /**
  * Logger
@@ -16,12 +15,22 @@ const PostgresTransport = require('./winston-postgres-transport');
 const logger = createLogger({
     level: 'info',
     format: format.combine(
-        format.timestamp(),
-        format.json()
+        format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        format.printf(({ timestamp, level, message, meta }) => {
+            const metaInfo = meta
+                ? ` | meta: ${JSON.stringify(meta)}`
+                : '';
+            return `${timestamp} | ${level.toUpperCase()} | ${message}${metaInfo}`;
+        })
     ),
     transports: [
-        new PostgresTransport()
-        // Add other transports if needed
+        new transports.File({
+            filename: 'logs/app.log', // Save logs to this file
+            level: 'info', // Minimum log level
+            maxsize: 5242880, // Max size of log file (5MB)
+            maxFiles: 5, // Rotate after 5 files
+            tailable: true, // Keep the most recent logs in rotation
+        })
     ]
 });
 

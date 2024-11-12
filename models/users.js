@@ -1,5 +1,5 @@
 /**
- * Authenticaton System
+ * Authentication System
  * Using ExpressJS
  * By: Wilfred V. Pine
  * https://github.com/wilfredpine/
@@ -8,6 +8,7 @@
  */
 
 module.exports = (sequelize, DataTypes) => {
+    
     const users = sequelize.define('users', {
       name: {
         type: DataTypes.STRING,

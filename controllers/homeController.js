@@ -8,11 +8,14 @@
  */
 
 const index = (req, res) => {
+
     user = req.user
     res.render('index', user);
+
 };
 
 const sample = (req, res) => {
+
     const { encode } = require('html-entities');
     const data = db.User.find();
     // Sanitize data
@@ -25,8 +28,8 @@ const sample = (req, res) => {
         };
     });
     res.render('sample',  { 'info': sanitizedData });
-};
 
+};
 
 module.exports = {
     index,
