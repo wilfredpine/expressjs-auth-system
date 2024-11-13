@@ -15,3 +15,5 @@ old/*
 *.stTheme.cache
 *.sublime-workspace
 *.sublime-project
+
+.env.production
