@@ -242,7 +242,20 @@
  * Helmet middleware
  * - Content Security Policy (CSP)
  */
+
+  /**const cspConfig = {
+    directives: {
+        defaultSrc: ["'self'"],
+        // scriptSrc: ["'self'", "https://cdn.tailwindcss.com"],  // Allow Tailwind CSS CDN
+        // styleSrc: ["'self'", "https://cdn.tailwindcss.com"],   // Allow inline styles from CDN
+        // Add other directives as needed
+    },
+  };**/
+
+  /** Apply helmet middleware */
   app.use(helmet());
+  /** Apply helmet middleware with custom CSP */
+  /** app.use(helmet.contentSecurityPolicy(cspConfig)); */
 
 
 /**

@@ -22,3 +22,8 @@
 - email verification
 - forgot password
 - multiple user role validation
+
+### Want to learn NodeJS & ExpressJS?
+
+[NodeJS Tutorial](https://github.com/wilfredpine/NodeJS-Tutorial)
+[YouTube](https://www.youtube.com/@confired-official/)
