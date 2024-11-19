@@ -7,7 +7,7 @@
  * @8/2024
  */
 
-require('dotenv').config();
+require('@dotenvx/dotenvx').config()
 
 const JWT_SECRET =      process.env.JWT_SECRET;                      // Secret key used to sign the JWT
 

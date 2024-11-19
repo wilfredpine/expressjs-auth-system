@@ -7,7 +7,7 @@
  * @8/2024
  */
 
-require('dotenv').config();
+require('@dotenvx/dotenvx').config()
 const jwt = require('jsonwebtoken');
 
 const SECRET_KEY = process.env.JWT_SECRET;              // Ensure this matches the secret used to sign your tokens

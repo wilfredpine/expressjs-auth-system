@@ -7,7 +7,7 @@
  * @8/2024
  */
 
-require('dotenv').config();
+require('@dotenvx/dotenvx').config()
 const nodemailer = require('nodemailer');
 
 /**

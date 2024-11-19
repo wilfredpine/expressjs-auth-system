@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 
 module.exports = csrfTokens;
 
@@ -6,39 +6,46 @@ function csrfTokens(options) {
   options = options || {};
 
   const secretLength = options.secretLength || 18;
-  const saltLength = options.saltLength || 8;
+  const saltRounds = options.saltRounds || 10;
   const tokenize = options.tokenize || csrfTokens.tokenize;
 
   return {
     secret(cb) {
-      const secret = crypto.randomBytes(secretLength).toString('base64');
+      const secret = generateRandomString(secretLength);
       cb(null, secret); // Call the callback with the secret
     },
 
     secretSync() {
-      return crypto.randomBytes(secretLength).toString('base64');
+      return generateRandomString(secretLength);
     },
 
-    create(secret) {
-      const salt = crypto.randomBytes(saltLength).toString('base64');
-      return tokenize(secret, salt);
+    async create(secret) {
+      const salt = generateRandomString(8); // Generate a simple salt
+      const hash = await tokenize(secret, salt);
+      return `${salt}-${hash}`;
     },
 
-    verify(secret, token) {
+    async verify(secret, token) {
       if (!token || typeof token !== 'string') return false;
-      const [salt] = token.split('-');
-      const expectedToken = tokenize(secret, salt);
-      return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expectedToken));
+      const [salt, hash] = token.split('-');
+      if (!salt || !hash) return false;
+
+      const expectedHash = await tokenize(secret, salt);
+      return bcrypt.compare(expectedHash, hash);
     },
   };
 }
 
-csrfTokens.tokenize = function tokenize(secret, salt) {
-  const hash = crypto.createHash('sha1')
-    .update(salt)
-    .update('-')
-    .update(secret)
-    .digest('base64')
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); // URL-safe base64
-  return `${salt}-${hash}`;
+csrfTokens.tokenize = async function tokenize(secret, salt) {
+  const rawToken = `${salt}-${secret}`;
+  return bcrypt.hash(rawToken, 10); // Hash with bcrypt
 };
+
+function generateRandomString(length) {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  return result;
+}

@@ -7,7 +7,7 @@
  * @8/2024
  */
 
-require('dotenv').config();
+require('@dotenvx/dotenvx').config()
 const logger = require('../middlewares/logger');
 const path = require('path');
 const { Sequelize } = require('sequelize');
