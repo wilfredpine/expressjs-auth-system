@@ -223,16 +223,16 @@
   app.use(csrfMiddleware({ 
     cookie: { 
       key:            '_csrf', 
-      httpOnly:       process.env.COOKIE_SESSION_HTTPONLY,
+      httpOnly:       process.env.COOKIE_SESSION_HTTPONLY === 'true',
       secure:         environment === 'production', 
-      sameSite:       process.env.COOKIE_SESSION_SAMESITE 
+      sameSite:       process.env.COOKIE_SESSION_SAMESITE || 'Strict' 
     }
   }));
 
   /** Middleware to make CSRF token available in response locals */
-  app.use((req, res, next) => {
+  app.use(async (req, res, next) => {
 
-    res.locals.csrfToken = req.csrfToken();
+    res.locals.csrfToken = await req.csrfToken();
     next();
 
   });
@@ -379,10 +379,10 @@
  */
   app.use((err, req, res, next) => {
 
-    if (err.code === 'EBADCSRFTOKEN') { /** Handle CSRF errors */
+    if (err.code === 'EBADCSRFTOKEN' || err.code === 'EMISSINGCSRFTOKEN') { /** Handle CSRF errors */
 
       logger.warn('CSRF error', { message: err.message, stack: err.stack });
-      res.status(403).send('Form has expired or tampered with.');
+      res.status(err.status || 403).send(err.message || 'CSRF validation failed');
 
     } else {
 

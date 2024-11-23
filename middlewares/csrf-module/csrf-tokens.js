@@ -1,51 +1,55 @@
 const bcrypt = require('bcryptjs');
 
-module.exports = csrfTokens;
-
-function csrfTokens(options) {
-  options = options || {};
-
-  const secretLength = options.secretLength || 18;
-  const saltRounds = options.saltRounds || 10;
-  const tokenize = options.tokenize || csrfTokens.tokenize;
-
+/**
+ * CSRF Token Utility
+ * Provides methods to generate and validate CSRF tokens.
+ * @param {Object} [options] - Configuration options.
+ * @param {number} [options.secretLength=18] - Length of the generated secret.
+ * @param {number} [options.hashRounds=10] - Number of bcrypt hashing rounds.
+ * @returns {Object} Utility methods.
+ */
+module.exports = function csrfTokens({ secretLength = 18, hashRounds = 10 } = {}) {
   return {
-    secret(cb) {
-      const secret = generateRandomString(secretLength);
-      cb(null, secret); // Call the callback with the secret
-    },
-
-    secretSync() {
+    /**
+     * Generates a random secret string.
+     * @returns {Promise<string>} The generated secret.
+     */
+    async generateSecret() {
       return generateRandomString(secretLength);
     },
 
-    async create(secret) {
-      const salt = generateRandomString(8); // Generate a simple salt
-      const hash = await tokenize(secret, salt);
+    /**
+     * Creates a CSRF token using a secret.
+     * @param {string} secret - The secret used to create the token.
+     * @returns {Promise<string>} The generated token.
+     */
+    async createToken(secret) {
+      const salt = generateRandomString(8);
+      const hash = await bcrypt.hash(`${salt}-${secret}`, hashRounds);
       return `${salt}-${hash}`;
     },
 
-    async verify(secret, token) {
-      if (!token || typeof token !== 'string') return false;
+    /**
+     * Validates a CSRF token against a secret.
+     * @param {string} secret - The original secret.
+     * @param {string} token - The token to validate.
+     * @returns {Promise<boolean>} True if the token is valid, otherwise false.
+     */
+    async verifyToken(secret, token) {
+      if (!token) return false;
       const [salt, hash] = token.split('-');
       if (!salt || !hash) return false;
-
-      const expectedHash = await tokenize(secret, salt);
-      return bcrypt.compare(expectedHash, hash);
+      return bcrypt.compare(`${salt}-${secret}`, hash);
     },
   };
-}
-
-csrfTokens.tokenize = async function tokenize(secret, salt) {
-  const rawToken = `${salt}-${secret}`;
-  return bcrypt.hash(rawToken, 10); // Hash with bcrypt
 };
 
+/**
+ * Generates a random alphanumeric string.
+ * @param {number} length - Length of the string to generate.
+ * @returns {string} The generated string.
+ */
 function generateRandomString(length) {
-  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += charset.charAt(Math.floor(Math.random() * charset.length));
-  }
-  return result;
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  return Array.from({ length }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
 }

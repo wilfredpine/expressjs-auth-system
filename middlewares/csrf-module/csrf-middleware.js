@@ -1,92 +1,96 @@
-const csrfTokens = require('./csrf-tokens');  // Import your updated csrf-tokens.js file
+const csrfTokens = require('./csrf-tokens');
 
-const ignoreMethod = {
-    GET: true,
-    HEAD: true,
-    OPTIONS: true,
-};
+/**
+ * CSRF Middleware
+ * Ensures protection against CSRF attacks.
+ * @param {Object} [options] - Configuration options.
+ * @param {Function} [options.value] - Function to extract the token from the request.
+ * @param {Object} [options.cookie] - Cookie configuration.
+ * @param {number} [options.secretLength=18] - Length of the generated secret.
+ * @param {number} [options.hashRounds=10] - Number of bcrypt hashing rounds.
+ * @returns {Function} Middleware function.
+ */
+module.exports = function csrfMiddleware(options = {}) {
+  const { value: getTokenFromRequest = extractToken, cookie: cookieOptions = {} } = options;
+  const cookieKey = cookieOptions.key || '_csrf';
+  const isSigned = cookieOptions.signed || false;
+  const tokenUtils = csrfTokens(options);
 
-module.exports = function csrf(options) {
-    options = options || {};
-    const value = options.value || defaultValue;
-    const cookie = options.cookie;
-    const cookieKey = (cookie && cookie.key) || '_csrf';
-    const signedCookie = cookie && cookie.signed;
+  return async (req, res, next) => {
+    try {
+      let secret = getSecret(req, cookieKey, isSigned);
 
-    const tokens = csrfTokens(options);  // Initialize tokens using csrfTokens function
+      if (!secret) {
+        secret = await tokenUtils.generateSecret();
+        storeSecret(res, secret, cookieKey, cookieOptions);
+      }
 
-    if (cookie && typeof cookie !== 'object') cookie = {};
+      req.csrfToken = async () => tokenUtils.createToken(secret);
 
-    return function(req, res, next) {
-        // Retrieve existing secret if it exists
-        let secret;
-        if (cookie) {
-            secret = (
-                (signedCookie && req.signedCookies && req.signedCookies[cookieKey]) ||
-                (!signedCookie && req.cookies && req.cookies[cookieKey])
-            );
-        } else if (req.session) {
-            secret = req.session.csrfSecret;
-        } else {
-            const err = new Error('misconfigured csrf');
-            err.status = 500;
-            next(err);
-            return;
-        }
-        if (secret) return createToken(secret);
+      if (isSafeMethod(req.method)) return next();
 
-        // Generate new secret if none exists
-        tokens.secret(function(err, secret) {
-            if (err) return next(err);
-            if (cookie) {
-                res.cookie(cookieKey, secret, cookie);
-            } else if (req.session) {
-                req.session.csrfSecret = secret;
-            } else {
-                const err = new Error('misconfigured csrf');
-                err.status = 500;
-                next(err);
-                return;
-            }
-            createToken(secret);
-        });
+      const userToken = getTokenFromRequest(req);
+      if (!userToken || !(await tokenUtils.verifyToken(secret, userToken))) {
+        throw createCsrfError('Invalid or missing CSRF token', 'EBADCSRFTOKEN', 403);
+      }
 
-        // Generate the token
-        function createToken(secret) {
-            // Lazy-load token
-            let token;
-            req.csrfToken = function csrfToken() {
-                return token || (token = tokens.create(secret));
-            };
-
-            // Ignore specified methods
-            if (ignoreMethod[req.method]) return next();
-
-            // Verify user-submitted token value
-            if (!tokens.verify(secret, value(req))) {
-                const err = new Error('invalid csrf token');
-                err.status = 403;
-                next(err);
-                return;
-            }
-
-            next();
-        }
-    };
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
 };
 
 /**
- * Default value function, checking the `req.body`
- * and `req.query` for the CSRF token.
- *
- * @param {IncomingMessage} req
- * @return {String}
- * @api private
+ * Checks if the HTTP method is safe (does not modify server state).
+ * @param {string} method - HTTP method.
+ * @returns {boolean} True if safe, otherwise false.
  */
+function isSafeMethod(method) {
+  return ['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase());
+}
 
-function defaultValue(req) {
-    return (req.body && req.body._csrf) ||
-           (req.query && req.query._csrf) ||
-           (req.headers['x-csrf-token']) ||
-           (req.headers['x-xsrf-token']);
+/**
+ * Extracts the CSRF token from the request.
+ * @param {Object} req - The request object.
+ * @returns {string|undefined} The token value.
+ */
+function extractToken(req) {
+  return req.body?._csrf || req.query?._csrf || req.headers['x-csrf-token'] || req.headers['x-xsrf-token'];
+}
+
+/**
+ * Retrieves the CSRF secret from cookies.
+ * @param {Object} req - The request object.
+ * @param {string} key - Cookie key to retrieve the secret.
+ * @param {boolean} isSigned - Whether the cookie is signed.
+ * @returns {string|undefined} The retrieved secret.
+ */
+function getSecret(req, key, isSigned) {
+  return isSigned ? req.signedCookies?.[key] : req.cookies?.[key];
+}
+
+/**
+ * Stores the CSRF secret in cookies.
+ * @param {Object} res - The response object.
+ * @param {string} secret - The secret to store.
+ * @param {string} key - Cookie key to store the secret under.
+ * @param {Object} options - Cookie configuration.
+ */
+function storeSecret(res, secret, key, options) {
+  res.cookie(key, secret, options);
+}
+
+/**
+ * Creates an error for CSRF issues.
+ * @param {string} message - Error message.
+ * @param {string} code - Error code.
+ * @param {number} status - HTTP status code.
+ * @returns {Error} The generated error.
+ */
+function createCsrfError(message, code, status) {
+  const error = new Error(message);
+  error.code = code;
+  error.status = status;
+  return error;
 }
